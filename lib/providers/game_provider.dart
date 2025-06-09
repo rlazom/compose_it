@@ -39,6 +39,7 @@ class GameProvider extends ChangeNotifier {
     log('startGame() - word: "$word"');
     _currentWord = word;
     _placedLetters = [];
+    _selectedLetters = [];
 
     int addMoreLetters = 3;
     // _availableLetters = word.word.split('')..shuffle();

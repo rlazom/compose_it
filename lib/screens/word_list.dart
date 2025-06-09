@@ -40,6 +40,8 @@ class WordListScreen extends StatelessWidget {
 
             TextField(
               controller: emojiCtrl,
+              readOnly: true,
+              // enabled: false,
               decoration: InputDecoration(
                   label: Text('Imagen (Emoji)')
               ),
