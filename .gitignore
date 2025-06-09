@@ -43,3 +43,42 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# Archivos generados por Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+flutter_*.png
+*.lock
+
+# Android
+/android/
+/gradle/
+/local.properties
+*.keystore
+
+# iOS
+/ios/
+**/Podfile.lock
+**/Runner.xcworkspace
+**/Runner.xcodeproj/project.xcworkspace/
+**/Runner.xcodeproj/xcuserdata/
+
+# Archivos IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# Archivos de entorno
+.env
+.env.*
+*.env
+
+# Archivos temporales
+*.log
+*.tmp
+*.DS_Store
