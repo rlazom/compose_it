@@ -10,18 +10,12 @@ enum TtsState {
   playing,
 }
 
-// class Word {
-//   final String data;
-//   bool selected;
-//
-//   Word({required this.data, this.selected = false});
-// }
-
 class GameProvider extends ChangeNotifier {
   String? _currentWord;
   List<String> _availableLetters = [];
   List<String> _placedLetters = [];
-  List<String> _selectedLetters = [];
+
+  bool? win;
 
   final String _currentLanguage = 'es';
 
@@ -33,13 +27,11 @@ class GameProvider extends ChangeNotifier {
   String? get currentWord => _currentWord;
   List<String> get availableLetters => _availableLetters;
   List<String> get placedLetters => _placedLetters;
-  String get selectedLetters => _selectedLetters.join();
 
   void startGame(String word) {
     log('startGame() - word: "$word"');
     _currentWord = word;
     _placedLetters = [];
-    _selectedLetters = [];
 
     int addMoreLetters = 3;
     // _availableLetters = word.word.split('')..shuffle();
@@ -93,22 +85,35 @@ class GameProvider extends ChangeNotifier {
     await flutterTts.isLanguageAvailable("en-US");
   }
 
+  void clear() {
+    _currentWord = null;
+    _availableLetters = [];
+    _placedLetters = [];
+  }
+
+  bool? checkWin() {
+    print('checkWin()');
+    print('placedLetters: "${placedLetters.join().length}"');
+    print('_currentWord: "${(_currentWord ?? '').length}"');
+
+    win = null;
+
+    int placedLettersLength = placedLetters.join().length;
+    int currentWordLength = (_currentWord ?? '').length;
+
+    if (currentWordLength > 0 && placedLettersLength == currentWordLength) {
+      win = placedLetters.join() == _currentWord;
+    }
+
+    return win;
+  }
+
   playWord(String? word) async {
    if (word?.isNotEmpty ?? false) {
       ttsState = TtsState.playing;
       await flutterTts.speak(word!, focus: true);
       ttsState = TtsState.stopped;
     }
-  }
-
-  void selectLetter(String letter) {
-    _selectedLetters.add(letter);
-    notifyListeners();
-  }
-
-  void clearSelectedLetter() {
-    _selectedLetters.clear();
-    notifyListeners();
   }
 
   Future<void> placeLetter(String letter) async {
@@ -120,7 +125,7 @@ class GameProvider extends ChangeNotifier {
     if (win) {
       await _audioPlayer.play(AssetSource('sounds/success.mp3'));
     } else {
-      await _audioPlayer.play(AssetSource('sounds/failure.mp3'));
+      await _audioPlayer.play(AssetSource('sounds/lose.mp3'));
     }
   }
 

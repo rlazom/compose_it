@@ -1,21 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/game_provider.dart';
 
 class LetterBox extends StatelessWidget {
   final String letter;
   final bool isDragging;
   final bool isSelected;
+  final bool? isWin;
 
-  const LetterBox(this.letter, {this.isDragging = false, this.isSelected = false, super.key});
+  const LetterBox(
+    this.letter, {
+    this.isDragging = false,
+    this.isSelected = false,
+    this.isWin,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // final gameProvider = Provider.of<GameProvider>(context);
+    // bool isFail = gameProvider.win == false;
+
     return Container(
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: isDragging
-            ? Colors.amber
-            : letter == ' '
+        color: isWin != null
+            ? isWin == true
+              ? Colors.green
+              : Colors.red
+            : isDragging
+              ? Colors.amber
+              : letter == ' '
                 ? Colors.grey.withValues(alpha: 0.25)
                 : Colors.blueAccent,
         borderRadius: BorderRadius.circular(8),

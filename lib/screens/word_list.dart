@@ -16,94 +16,98 @@ class WordListScreen extends StatelessWidget {
       // appBar: AppBar(title: const Text('Compose It')),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 64.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                Expanded(child: FittedBox(child: Text('Componedor', style: TextStyle(fontWeight: FontWeight.bold),))),
-              ],
-            ),
-            SizedBox(height: 64,),
-            TextField(
-              maxLength: 16,
-              controller: wordCtrl,
-              textCapitalization: TextCapitalization.characters,
-              decoration: InputDecoration(
-                label: Text('Palabra'),
-              ),
-              onChanged: (String val) {
-                wordCtrl.text = val.toUpperCase().trim();
-              },
-            ),
-            SizedBox(height: 32,),
-
-            TextField(
-              controller: emojiCtrl,
-              readOnly: true,
-              // enabled: false,
-              decoration: InputDecoration(
-                  label: Text('Imagen (Emoji)')
-              ),
-            ),
-            EmojiPicker(
-              // textEditingController: emojiCtrl,
-              onEmojiSelected: (category, Emoji emoji) {
-                emojiCtrl.text = emoji.emoji;
-              },
-              onBackspacePressed: () => emojiCtrl.clear(),
-              config: Config(
-                height: 256,
-                emojiTextStyle: TextStyle(fontSize: 32),
-                checkPlatformCompatibility: true,
-                emojiViewConfig: EmojiViewConfig(
-                  columns: 6,
-                  // Issue: https://github.com/flutter/flutter/issues/28894
-                  emojiSizeMax: 64,
-                ),
-                viewOrderConfig: const ViewOrderConfig(
-                  top: EmojiPickerItem.categoryBar,
-                  middle: EmojiPickerItem.emojiView,
-                  bottom: EmojiPickerItem.searchBar,
-                ),
-                skinToneConfig: const SkinToneConfig(),
-                categoryViewConfig: const CategoryViewConfig(),
-                bottomActionBarConfig: const BottomActionBarConfig(),
-                searchViewConfig: const SearchViewConfig(),
-              ),
-              // config: Config(/* ...*/),
-              // customWidget: (config, state, showSearchView) => CustomView(
-              //   config,
-              //   state,
-              //   showSearchView,
-              // ),
-            ),
-
-            SizedBox(height: 64,),
-
-            FilledButton(
-              onPressed: () async {
-                if (wordCtrl.text.isNotEmpty) {
-
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (ctx) => GameScreen(
-                        word: wordCtrl.text.trim(),
-                        emoji: emojiCtrl.text.trim(),
-                      ),
-                    ),
-                  );
-
-                  wordCtrl.clear();
-                  emojiCtrl.clear();
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              OrientationBuilder(builder: (context, orientation) {
+                if (orientation == Orientation.portrait) {
+                  return const SizedBox(height: 64,);
+                } else {
+                  return const SizedBox.shrink();
                 }
+              }),
 
-              },
-              child: Text('Comenzar'),
-            ),
-
-          ],
+              Row(
+                children: [
+                  Expanded(child: FittedBox(child: Text('Componedor', style: TextStyle(fontWeight: FontWeight.bold),))),
+                ],
+              ),
+              SizedBox(height: 64,),
+              TextField(
+                maxLength: 16,
+                controller: wordCtrl,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  label: Text('Palabra'),
+                ),
+                onChanged: (String val) {
+                  wordCtrl.text = val.toUpperCase().trim();
+                },
+              ),
+              SizedBox(height: 32,),
+          
+              TextField(
+                controller: emojiCtrl,
+                readOnly: true,
+                // enabled: false,
+                decoration: InputDecoration(
+                    label: Text('Imagen (Emoji)')
+                ),
+              ),
+              EmojiPicker(
+                // textEditingController: emojiCtrl,
+                onEmojiSelected: (category, Emoji emoji) {
+                  emojiCtrl.text = emoji.emoji;
+                },
+                onBackspacePressed: () => emojiCtrl.clear(),
+                config: Config(
+                  height: 256,
+                  emojiTextStyle: TextStyle(fontSize: 32),
+                  checkPlatformCompatibility: true,
+                  emojiViewConfig: EmojiViewConfig(
+                    columns: 6,
+                    // Issue: https://github.com/flutter/flutter/issues/28894
+                    emojiSizeMax: 64,
+                  ),
+                  viewOrderConfig: const ViewOrderConfig(
+                    top: EmojiPickerItem.categoryBar,
+                    middle: EmojiPickerItem.emojiView,
+                    bottom: EmojiPickerItem.searchBar,
+                  ),
+                  skinToneConfig: const SkinToneConfig(),
+                  categoryViewConfig: const CategoryViewConfig(),
+                  bottomActionBarConfig: const BottomActionBarConfig(),
+                  searchViewConfig: const SearchViewConfig(),
+                ),
+              ),
+          
+              SizedBox(height: 64,),
+          
+              FilledButton(
+                onPressed: () async {
+                  if (wordCtrl.text.isNotEmpty) {
+          
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (ctx) => GameScreen(
+                          word: wordCtrl.text.trim(),
+                          emoji: emojiCtrl.text.trim(),
+                        ),
+                      ),
+                    );
+          
+                    wordCtrl.clear();
+                    emojiCtrl.clear();
+                  }
+          
+                },
+                child: Text('Comenzar'),
+              ),
+          
+            ],
+          ),
         ),
       ),
       // body: GridView.builder(

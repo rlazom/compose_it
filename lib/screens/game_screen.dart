@@ -22,8 +22,12 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
     _confettiController =
         ConfettiController(duration: const Duration(seconds: 2));
+
+    GameProvider provider = Provider.of<GameProvider>(context, listen: false);
+    provider.clear();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<GameProvider>(context, listen: false).startGame(widget.word);
+      provider.startGame(widget.word);
     });
   }
 
@@ -33,159 +37,218 @@ class _GameScreenState extends State<GameScreen> {
     super.dispose();
   }
 
-  void _checkWin() {
-    final gameProvider = Provider.of<GameProvider>(context);
-    bool win = gameProvider.placedLetters.join() == widget.word;
-
-    if (win) {
-      _confettiController.play();
-    }
-
-    gameProvider.playSound(win: win);
-  }
+  // void _checkWin() {
+  //   final gameProvider = Provider.of<GameProvider>(context);
+  //   bool win = gameProvider.placedLetters.join() == widget.word;
+  //
+  //   if (win) {
+  //     _confettiController.play();
+  //   }
+  //
+  //   gameProvider.playSound(win: win);
+  // }
 
   @override
   Widget build(BuildContext context) {
     final gameProvider = Provider.of<GameProvider>(context);
 
     // if (gameProvider.placedLetters.join() == widget.word) {
-    if (gameProvider.placedLetters.join().length == widget.word.length) {
-      _checkWin();
+    // if (gameProvider.placedLetters.join().length == widget.word.length) {
+    //   _checkWin();
+    // }
+
+    bool? checkWin = gameProvider.checkWin();
+    print('build() - checkWin: "$checkWin"');
+
+    if (checkWin != null) {
+      if (checkWin) {
+        _confettiController.play();
+      }
+      gameProvider.playSound(win: checkWin);
     }
 
     return Stack(
       children: [
         Scaffold(
           // appBar: AppBar(title: Text('Forma: ${widget.word.word}')),
-          appBar: AppBar(),
+          appBar: AppBar(
+            actions: [
+              IconButton(
+                  tooltip: 'Escuchar palabra completa',
+                  onPressed: () =>
+                      gameProvider.playWord(gameProvider.currentWord),
+                  icon: Icon(Icons.play_arrow)),
+              IconButton(
+                  tooltip: 'Reiniciar',
+                  onPressed: gameProvider.placedLetters.isEmpty
+                      ? null
+                      : gameProvider.resetCurrent,
+                  icon: Icon(Icons.refresh)),
+            ],
+          ),
           body: Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                OutlinedButton(
-                  onPressed: () => gameProvider.playWord(gameProvider.currentWord),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            child: OrientationBuilder(builder: (context, orientation) {
+              if (orientation == Orientation.portrait) {
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Escuchar palabra completa'),
-                      Icon(Icons.volume_down_sharp),
+                      /// Letras disponibles
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: gameProvider.availableLetters.map((letter) {
+                          return Draggable<String>(
+                            data: letter,
+                            feedback: LetterBox(letter, isDragging: true),
+                            childWhenDragging: LetterBox(' '),
+                            child: LetterBox(letter),
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 40),
+
+                      DragTarget<String>(
+                        builder: (context, _, __) => Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: (gameProvider.currentWord ?? '')
+                                .split('')
+                                .asMap()
+                                .entries
+                                .map((entry) {
+                              final index = entry.key;
+                              final placedLetter =
+                                  index < gameProvider.placedLetters.length
+                                      ? gameProvider.placedLetters[index]
+                                      : null;
+
+                              return placedLetter != null
+                                  ? LetterBox(
+                                      placedLetter,
+                                      isWin: checkWin,
+                                    )
+                                  : LetterBox(' ');
+                            }).toList(),
+                          ),
+                        ),
+                        // onAccept: (letter) => gameProvider.placeLetter(letter),
+                        onAcceptWithDetails: (letter) =>
+                            gameProvider.placeLetter(letter.data),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Imagen referencia
+                      if (widget.emoji?.isNotEmpty ?? false)
+                        Center(
+                          child: Text(
+                            widget.emoji!,
+                            style: TextStyle(fontSize: 128),
+                          ),
+                        ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                Row(
+                );
+              } else {
+                return Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: gameProvider.selectedLetters.isEmpty
-                            ? null
-                            : () {
-                                gameProvider.playWord(gameProvider.selectedLetters);
-                              },
-                        child: Row(
-                          children: [
-                            Text('Escuchar ${gameProvider.selectedLetters.isEmpty ? '' : '"${gameProvider.selectedLetters}"'}'),
-                            Icon(gameProvider.selectedLetters.isEmpty ? Icons.volume_off : Icons.volume_up),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 16,),
-                    OutlinedButton(
-                      onPressed: gameProvider.selectedLetters.isEmpty
-                          ? null
-                          : gameProvider.clearSelectedLetter,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      flex: 3,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.clear),
+                          /// Letras disponibles
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: gameProvider.availableLetters
+                                .map((letter) {
+                              return Draggable<String>(
+                                data: letter,
+                                feedback: LetterBox(letter,
+                                    isDragging: true),
+                                childWhenDragging: LetterBox(' '),
+                                child: LetterBox(letter),
+                              );
+                            }).toList(),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          DragTarget<String>(
+                            builder: (context, _, __) => Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                border:
+                                    Border.all(color: Colors.grey),
+                                borderRadius:
+                                    BorderRadius.circular(10),
+                              ),
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children:
+                                    (gameProvider.currentWord ?? '')
+                                        .split('')
+                                        .asMap()
+                                        .entries
+                                        .map((entry) {
+                                  final index = entry.key;
+                                  final placedLetter = index <
+                                          gameProvider
+                                              .placedLetters.length
+                                      ? gameProvider
+                                          .placedLetters[index]
+                                      : null;
+
+                                  return placedLetter != null
+                                      ? LetterBox(
+                                          placedLetter,
+                                          isWin: checkWin,
+                                        )
+                                      : LetterBox(' ');
+                                }).toList(),
+                              ),
+                            ),
+                            // onAccept: (letter) => gameProvider.placeLetter(letter),
+                            onAcceptWithDetails: (letter) =>
+                                gameProvider
+                                    .placeLetter(letter.data),
+                          ),
                         ],
                       ),
                     ),
-                  ],
-                ),
 
-                const SizedBox(height: 40),
-
-                /// Letras disponibles
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: gameProvider.availableLetters.map((letter) {
-                    return Draggable<String>(
-                      data: letter,
-                      feedback: LetterBox(letter, isDragging: true),
-                      childWhenDragging: LetterBox(' '),
-                      child: InkWell(
-                        onTap: () => gameProvider.selectLetter(letter),
-                        child: LetterBox(letter),
+                    Expanded(
+                      flex: 2,
+                      child: FittedBox(
+                        child: Text(
+                          widget.emoji!,
+                        ),
                       ),
-                    );
-                  }).toList(),
-                ),
-
-                const SizedBox(height: 40),
-
-                DragTarget<String>(
-                  builder: (context, _, __) => Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: (gameProvider.currentWord ?? '')
-                          .split('')
-                          .asMap()
-                          .entries
-                          .map((entry) {
-                        final index = entry.key;
-                        final placedLetter =
-                            index < gameProvider.placedLetters.length
-                                ? gameProvider.placedLetters[index]
-                                : null;
-
-                        return placedLetter != null
-                            ? LetterBox(placedLetter)
-                            : LetterBox(' ');
-                      }).toList(),
-
-                      // children: gameProvider.currentWord!.word.split('').asMap().map(
-                      //       (MapEntry<dynamic, dynamic> map) => LetterBox(gameProvider.placedLetters[map.key ?? '']),
-
-                      // children: gameProvider.placedLetters.map(
-                      //       (letter) => LetterBox(letter),
-                      // ).toList(),
-                    ),
-                  ),
-                  // onAccept: (letter) => gameProvider.placeLetter(letter),
-                  onAcceptWithDetails: (letter) =>
-                      gameProvider.placeLetter(letter.data),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Imagen referencia
-                // Image.asset(widget.word.imagePath, height: 120),
-                if (widget.emoji?.isNotEmpty ?? false)
-                  Text(
-                    widget.emoji!,
-                    style: TextStyle(fontSize: 128),
-                  ),
-
-                // Botón reinicio
-                if (gameProvider.placedLetters.isNotEmpty)
-                  OutlinedButton(
-                    onPressed: gameProvider.resetCurrent,
-                    child: const Text('Reiniciar'),
-                  ),
-              ],
-            ),
+                    // if (widget.emoji?.isNotEmpty ?? false)
+                    //   Expanded(
+                    //     flex: 1,
+                    //     child: Text(
+                    //       widget.emoji!,
+                    //       style: TextStyle(fontSize: 128),
+                    //     ),
+                    //   ),
+                  ],
+                );
+              }
+            }),
           ),
         ),
 
