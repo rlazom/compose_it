@@ -86,6 +86,7 @@ class _GameScreenState extends State<GameScreen> {
                   icon: Icon(Icons.refresh)),
             ],
           ),
+          // backgroundColor: gameProvider.win == true ? Colors.green.shade100 : gameProvider.win == false ? Colors.red.shade50 : Colors.white,
           body: Padding(
             padding: const EdgeInsets.all(16),
             child: OrientationBuilder(builder: (context, orientation) {
@@ -114,7 +115,9 @@ class _GameScreenState extends State<GameScreen> {
                         builder: (context, _, __) => Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
+                            // border: Border.all(color: Colors.grey),
+                            border: Border.all(width: 2.0, color: gameProvider.win == true ? Colors.green : gameProvider.win == false ? Colors.red : Colors.grey,),
+                            // color: gameProvider.win == true ? Colors.green.shade200 : gameProvider.win == false ? Colors.red.shade200 : Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Wrap(

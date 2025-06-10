@@ -31,6 +31,7 @@ class LetterBox extends StatelessWidget {
               ? Colors.green
               : Colors.red
             : isDragging
+        // color: isDragging
               ? Colors.amber
               : letter == ' '
                 ? Colors.grey.withValues(alpha: 0.25)
